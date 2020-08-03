@@ -8,39 +8,48 @@ fsamp = 1024
 ecg_noisy = np.loadtxt('enel420_grp_11.txt')
 
 #noise is ~32.6 Hz and ~61.7 Hz
-fl_1 = 28.6
-fn_1 = 32.6
-fh_1 = 36.6
-fl_2 = 57.7
-fn_2 = 61.7
-fh_2 = 65.7
+noise_band_1 = [32.4, 32.8]
+noise_band_2 = [61.5, 61.9]
+trans_width = 4
 
-notch_cutoff = [0, fl_1, fn_1, fh_1, fl_2, fn_2, fh_2, fsamp/2]
-A = [1, 1, 0, 1, 1, 0, 1, 1]
+#no need to normalise as fs is passed to firwin
+notch_cutoff = [0, noise_band_1[0]-trans_width, noise_band_1[0], noise_band_1[1], noise_band_1[1]+trans_width,
+                noise_band_2[0]-trans_width, noise_band_2[0], noise_band_2[1], noise_band_2[1]+trans_width, fsamp/2]
 
-filter_coefficients = scipy.signal.firwin2(numtaps=400, freq=notch_cutoff, gain=A, fs=fsamp)
+#Filter frequency response
+filter_coefficients = scipy.signal.remez(numtaps=399, bands=notch_cutoff, desired=[1, 0, 1, 0, 1], fs=fsamp)
 w, h = scipy.signal.freqz(filter_coefficients)
 f = (fsamp*w)/(2*np.pi)
-
-plt.plot(f, 20 * np.log10(abs(h)), 'b')
+plt.figure(1)
+plt.plot(f, 20*np.log10(abs(h)))
 plt.xlim(0, 100)
-plt.title('Notch Filter Frequency Response')
-plt.ylabel('Amplitude (dB)', color='b')
-plt.xlabel('Frequency (Hz)')
+plt.title('Filter Frequency Response')
+plt.ylabel('Amplitude', color='b')
 plt.show()
 
+#Filter phase response
+plt.figure(2)
+plt.plot(f, np.angle(h))
+plt.xlim(0, 40)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Phase (radians)')
+plt.title('Filter Phase Response')
+plt.show()
+
+#Filtered ECG signal
 ecg_filtered = scipy.signal.lfilter(filter_coefficients, [1.0], ecg_noisy)
 time = np.linspace(start=0, stop=num_samples/fsamp, num=num_samples+1)
-
+plt.figure(3)
 plt.plot(time[0:len(time)-1], ecg_filtered)
 plt.xlabel('Time (s)')
 plt.ylabel('ECG Voltage (uV)')
 plt.title('Filtered ECG Signal')
 plt.show()
 
+#FFT of filtered ECG
 ecg_filt_fft = abs(scipy.fft.fft(ecg_filtered))
 freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
-
+plt.figure(4)
 plt.plot(freq, ecg_filt_fft)
 plt.xlim(-200, 200)
 plt.xlabel('Frequency (Hz)')
