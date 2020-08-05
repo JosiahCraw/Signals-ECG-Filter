@@ -9,11 +9,11 @@ ecg_noisy = np.loadtxt('enel420_grp_11.txt')
 
 #Coefficients for 32.6 Hz notch
 A_n1 = np.array([1,-1.93005,0.969556])
-B_n1 = np.array([1,-1.96012,1])
+B_n1 = np.array([0.99057,-1.94164,0.99057])
 
 #Coefficients for 61.7 Hz notch
 A_n2 = np.array([1,-1.82987,0.969556])
-B_n2 = np.array([1,-1.85838,1])
+B_n2 = np.array([0.98633,-1.83297,0.98633])
 
 #Compute frequency responses of the notch filters
 w, h_1 = scipy.signal.freqz(B_n1, A_n1)
