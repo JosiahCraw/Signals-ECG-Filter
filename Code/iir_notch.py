@@ -23,33 +23,33 @@ f = fsamp*w/(2*np.pi)
 #Cascade filters by multiplying in frequency
 cascaded_notch = h_1*h_2
 
-#Plot magnitude response
-plt.figure(1)
-plt.plot(f, 20*np.log10(abs(cascaded_notch)))
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Magnitude (dB)')
-plt.title('Magnitude Response of Cascaded IIR Notch Filters')
-plt.xlim(0, 100)
-plt.show()
-
 #Filtered ECG signal
 ecg_notch_1 = scipy.signal.lfilter(B_n1, A_n1, ecg_noisy)
 ecg_final = scipy.signal.lfilter(B_n2, A_n2, ecg_notch_1)
 time = np.linspace(start=0, stop=num_samples/fsamp, num=num_samples+1)
-plt.figure(3)
-plt.plot(time[0:len(time)-1], ecg_final)
-plt.xlabel('Time (s)')
-plt.ylabel('ECG Voltage (uV)')
-plt.title('Final Filtered ECG Signal')
-plt.show()
 
 #FFT of filtered ECG
 ecg_final_fft = abs(scipy.fft.fft(ecg_final))
 freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
-plt.figure(4)
-plt.plot(freq, ecg_final_fft)
-plt.xlim(-200, 200)
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Signal Power')
-plt.title('Spectrum of Filtered ECG Signal')
+
+fig, axs = plt.subplots(3, 1)
+
+axs[0].plot(f, 20*np.log10(abs(cascaded_notch)))
+axs[0].set_xlabel('Frequency (Hz)')
+axs[0].set_ylabel('Magnitude (dB)')
+axs[0].set_title('Magnitude Response of Cascaded IIR Notch Filters')
+axs[0].set_xlim(0, 100)
+
+axs[1].plot(time[0:len(time)-1], ecg_final)
+axs[1].set_xlabel('Time (s)')
+axs[1].set_ylabel('ECG Voltage (uV)')
+axs[1].set_title('Final Filtered ECG Signal')
+
+axs[2].plot(freq, ecg_final_fft)
+axs[2].set_xlim(-200, 200)
+axs[2].set_xlabel('Frequency (Hz)')
+axs[2].set_ylabel('Signal Power')
+axs[2].set_title('Spectrum of Filtered ECG Signal')
+
+plt.tight_layout()
 plt.show()
