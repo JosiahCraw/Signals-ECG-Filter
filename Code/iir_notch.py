@@ -1,4 +1,5 @@
 import scipy.signal
+import scipy.fftpack
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -29,8 +30,8 @@ ecg_final = scipy.signal.lfilter(B_n2, A_n2, ecg_notch_1)
 time = np.linspace(start=0, stop=num_samples/fsamp, num=num_samples+1)
 
 #FFT of filtered ECG
-ecg_final_fft = abs(scipy.fft.fft(ecg_final))
-freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
+ecg_final_fft = abs(scipy.fftpack.fft(ecg_final))
+freq = scipy.fftpack.fftfreq(num_samples, 1/fsamp)
 
 fig, axs = plt.subplots(3, 1)
 
@@ -46,7 +47,7 @@ axs[1].set_ylabel('ECG Voltage (uV)')
 axs[1].set_title('Final Filtered ECG Signal')
 
 axs[2].plot(freq, ecg_final_fft)
-axs[2].set_xlim(-200, 200)
+axs[2].set_xlim(-100, 100)
 axs[2].set_xlabel('Frequency (Hz)')
 axs[2].set_ylabel('Signal Power')
 axs[2].set_title('Spectrum of Filtered ECG Signal')
