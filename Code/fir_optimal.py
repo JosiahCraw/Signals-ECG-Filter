@@ -45,7 +45,7 @@ axs[1].set_title('Filtered ECG Signal')
 axs[2].plot(freq, ecg_filt_fft)
 axs[2].set_xlim(-100, 100)
 axs[2].set_xlabel('Frequency (Hz)')
-axs[2].set_ylabel('Signal Power')
+axs[2].set_ylabel('abs(Y(f)) ($uV^2$)')
 axs[2].set_title('Spectrum of Filtered ECG Signal')
 
 plt.tight_layout()

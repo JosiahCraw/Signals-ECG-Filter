@@ -45,8 +45,24 @@ axs[1].set_title('Filtered ECG Signal')
 axs[2].plot(freq, ecg_filt_fft)
 axs[2].set_xlim(-100, 100)
 axs[2].set_xlabel('Frequency (Hz)')
-axs[2].set_ylabel('Signal Power')
+axs[2].set_ylabel('abs(Y(f)) ($uV^2$)')
 axs[2].set_title('Spectrum of Filtered ECG Signal')
 
 plt.tight_layout()
 plt.show()
+
+plt.figure(2)
+plt.plot(time[0:len(time)-1], ecg_filtered)
+plt.plot(time[0:len(time)-1], ecg_noisy)
+plt.xlabel('Time (s)')
+plt.ylabel('ECG Voltage (uV)')
+plt.title('Delay of Window FIR Filter')
+plt.xlim(10,11)
+plt.show()
+
+noise_power = np.var(ecg_noisy) - np.var(ecg_filtered)
+print(noise_power)
+
+
+
+

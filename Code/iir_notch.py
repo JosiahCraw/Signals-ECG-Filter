@@ -1,5 +1,5 @@
 import scipy.signal
-import scipy.fftpack
+import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -26,12 +26,13 @@ cascaded_notch = h_1*h_2
 
 #Filtered ECG signal
 ecg_notch_1 = scipy.signal.lfilter(B_n1, A_n1, ecg_noisy)
+ecg_notch_2 = scipy.signal.lfilter(B_n2, A_n2, ecg_noisy)
 ecg_final = scipy.signal.lfilter(B_n2, A_n2, ecg_notch_1)
 time = np.linspace(start=0, stop=num_samples/fsamp, num=num_samples+1)
 
 #FFT of filtered ECG
-ecg_final_fft = abs(scipy.fftpack.fft(ecg_final))
-freq = scipy.fftpack.fftfreq(num_samples, 1/fsamp)
+ecg_final_fft = abs(scipy.fft.fft(ecg_final))
+freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
 
 fig, axs = plt.subplots(3, 1)
 
@@ -49,8 +50,22 @@ axs[1].set_title('Final Filtered ECG Signal')
 axs[2].plot(freq, ecg_final_fft)
 axs[2].set_xlim(-100, 100)
 axs[2].set_xlabel('Frequency (Hz)')
-axs[2].set_ylabel('Signal Power')
+axs[2].set_ylabel('abs(Y(f)) ($uV^2$)')
 axs[2].set_title('Spectrum of Filtered ECG Signal')
 
 plt.tight_layout()
 plt.show()
+
+plt.figure(2)
+plt.plot(time[0:len(time)-1], ecg_final)
+plt.plot(time[0:len(time)-1], ecg_noisy)
+plt.xlabel('Time (s)')
+plt.ylabel('ECG Voltage (uV)')
+plt.title('Delay of Cascaded IIR Notch Filters')
+plt.xlim(10,11)
+plt.show()
+
+noise_power_32_6hz = np.var(ecg_noisy) - np.var(ecg_notch_1)
+noise_power_61_7hz = np.var(ecg_noisy) - np.var(ecg_notch_2)
+print("61.7 Hz noise power = " + str(noise_power_61_7hz))
+print("32.6 Hz noise power = " + str(noise_power_32_6hz))

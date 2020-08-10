@@ -23,7 +23,7 @@ def main():
     axs[1].set_title("Noisy ECG Spectrum")
     axs[1].set_xlim(-100, 100)
     axs[1].set_xlabel('Frequency (Hz)')
-    axs[1].set_ylabel('Signal Power')
+    axs[1].set_ylabel('abs(X(f)) ($uV^2$)')
 
     plt.tight_layout()
     plt.show()
