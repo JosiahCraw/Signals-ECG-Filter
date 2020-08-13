@@ -1,4 +1,5 @@
 import scipy
+import scipy.signal
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -8,11 +9,15 @@ fs = 1024
 
 def main():
     ecg_noisy = np.loadtxt('enel420_grp_11.txt')
-    time = np.linspace(start=0, stop=num_samples/fs, num=num_samples+1)
 
+    #Generating time axis for ECG plot
+    time = np.linspace(start=0, stop=num_samples/fs, num=num_samples+1)
+    
+    #FFT of noisy signal and generating frequency axis
     ecg_fft = abs(scipy.fft.fft(ecg_noisy))
     freq = scipy.fft.fftfreq(num_samples, 1/fs)
 
+    #Plotting noisy ECG and its spectrum
     fig, axs = plt.subplots(2, 1)
 
     axs[0].plot(time[0:len(time)-1], ecg_noisy)
@@ -34,6 +39,15 @@ def main():
             plt.savefig('../img/noisy.png')
     else:
         plt.show()
+
+    #Plotting noisy ECG PSD (to estimate relative noise powers)
+    f, psd = scipy.signal.periodogram(ecg_noisy, 1024)
+    plt.figure(3)
+    plt.plot(f, psd)
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('PSD')
+    plt.title('Power Spectral Density of Noisy ECG')
+    plt.show()
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:

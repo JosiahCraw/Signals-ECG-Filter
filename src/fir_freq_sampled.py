@@ -11,14 +11,16 @@ num_transition_samples = 2
 def main():
     ecg_noisy = np.loadtxt('enel420_grp_11.txt')
 
-    spacing = np.linspace(0, fsamp, num_coefficients)
-
+    #Generating ideal frequency response with 400 samples (spacing 1024/399 Hz)
+    #Indexes 12 & 13, 387 & 388 are around the -/+32.6 Hz noise
+    #Indexes 24 & 25, 375 & 376 are around the -/+61.7 Hz noise
     f_resp_ideal = np.ones(num_coefficients)
     f_resp_ideal[12:13+1] = 0
     f_resp_ideal[24:25+1] = 0
     f_resp_ideal[387:388+1] = 0
     f_resp_ideal[375:376+1] = 0
 
+    #Placing equally spaced transition samples around notches
     i = 0
     while i < num_transition_samples:
         f_resp_ideal[12-num_transition_samples+i] = (num_transition_samples-i+1)/(num_transition_samples+1)
@@ -27,9 +29,11 @@ def main():
         f_resp_ideal[25+num_transition_samples-i] = (num_transition_samples-i+1)/(num_transition_samples+1)
         i += 1
 
+    #Generating ideal impulse response
     impulse_resp = scipy.fft.ifft(f_resp_ideal)
     h = np.real(impulse_resp)
 
+    #Making ideal impulse response symmetrical and tapering it with a Hamming window
     h_shift = np.ones(num_coefficients)
     h_shift[0:int(num_coefficients/2)]=h[int(num_coefficients/2):num_coefficients]
     h_shift[int(num_coefficients/2):num_coefficients]=h[0:int(num_coefficients/2)]
@@ -47,6 +51,7 @@ def main():
     ecg_filt_fft = abs(scipy.fft.fft(ecg_filtered))
     freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
 
+    #Plotting filter frequency response, time-domain ECG signal, and frequency-domain ECG signal
     fig, axs = plt.subplots(3, 1)
 
     axs[0].plot(f, 20*np.log10(abs(h)))
@@ -74,6 +79,10 @@ def main():
             plt.savefig('../img/fir_freq.png')
     else:
         plt.show()
+
+    #Noise power estimates
+    noise_power_total = np.var(ecg_noisy) - np.var(ecg_filtered)
+    print("Total noise power = " + str(noise_power_total))
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:

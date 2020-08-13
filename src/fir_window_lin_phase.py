@@ -9,13 +9,14 @@ fsamp = 1024
 def main():
     ecg_noisy = np.loadtxt('enel420_grp_11.txt')
 
-    #noise is ~32.6 Hz and ~61.7 Hz
+    #Noise is ~32.6 Hz and ~61.7 Hz
     fl_1 = 28.6
     fh_1 = 36.6
     fl_2 = 57.7
     fh_2 = 65.7
 
-    #no need to normalise as fs is passed to firwin
+    #Specifying filter cutoff frequencies
+    #No need to normalise as fs is passed to firwin
     notch_cutoff = [fl_1, fh_1, fl_2, fh_2]
 
     #Filter frequency response
@@ -31,6 +32,7 @@ def main():
     ecg_filt_fft = abs(scipy.fft.fft(ecg_filtered))
     freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
 
+    #Plotting filter frequency response, time-domain ECG signal, and frequency-domain ECG signal
     fig, axs = plt.subplots(3, 1)
 
     axs[0].plot(f, 20*np.log10(abs(h)))
@@ -59,6 +61,7 @@ def main():
     else:
         plt.show()
 
+    #Plotting unfiltered ECG over filtered ECG to show FIR delay
     plt.figure(2)
     plt.plot(time[0:len(time)-1], ecg_filtered)
     plt.plot(time[0:len(time)-1], ecg_noisy)
@@ -74,8 +77,10 @@ def main():
     else:
         plt.show()
 
-    noise_power = np.var(ecg_noisy) - np.var(ecg_filtered)
-    print(noise_power)
+    #Noise power estimates
+    noise_power_total = np.var(ecg_noisy) - np.var(ecg_filtered)
+    print("Total noise power = " + str(noise_power_total))
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:

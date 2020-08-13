@@ -26,7 +26,7 @@ def main():
     #Cascade filters by multiplying in frequency
     cascaded_notch = h_1*h_2
 
-    #Filtered ECG signal
+    #Filtered ECG signals
     ecg_notch_1 = scipy.signal.lfilter(B_n1, A_n1, ecg_noisy)
     ecg_notch_2 = scipy.signal.lfilter(B_n2, A_n2, ecg_noisy)
     ecg_final = scipy.signal.lfilter(B_n2, A_n2, ecg_notch_1)
@@ -36,6 +36,7 @@ def main():
     ecg_final_fft = abs(scipy.fft.fft(ecg_final))
     freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
 
+    #Plot of frequency response, time-domain filtered ECG, frequency-domain filtered ECG
     fig = plt.figure(1)
     axs = fig.subplots(3, 1)
 
@@ -65,6 +66,7 @@ def main():
     else:
         fig.show()
 
+    #Plotting unfiltered over filtered ECG to show IIR delay
     fig2 = plt.figure(2)
     plt.plot(time[0:len(time)-1], ecg_final)
     plt.plot(time[0:len(time)-1], ecg_noisy)
@@ -77,11 +79,14 @@ def main():
             fig2.savefig('../img/irr_notch_delay.pgf')
         if sys.argv[1] == "img":
             fig2.savefig('../img/irr_notch_delay.png')
-        else:
-            fig2.show()
+    else:
+        fig2.show()
 
+    #Noise power estimates
     noise_power_32_6hz = np.var(ecg_noisy) - np.var(ecg_notch_1)
     noise_power_61_7hz = np.var(ecg_noisy) - np.var(ecg_notch_2)
+    noise_power_total = np.var(ecg_noisy) - np.var(ecg_final)
+    print("Total noise power = " + str(noise_power_total))
     print("61.7 Hz noise power = " + str(noise_power_61_7hz))
     print("32.6 Hz noise power = " + str(noise_power_32_6hz))
 

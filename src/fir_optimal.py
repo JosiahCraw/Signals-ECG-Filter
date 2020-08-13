@@ -9,12 +9,13 @@ fsamp = 1024
 def main():
     ecg_noisy = np.loadtxt('enel420_grp_11.txt')
 
-    #noise is ~32.6 Hz and ~61.7 Hz
+    #Noise is ~32.6 Hz and ~61.7 Hz
     noise_band_1 = [32.5, 32.7]
     noise_band_2 = [61.6, 61.8]
     trans_width = 3.5
 
-    #no need to normalise as fs is passed to firwin
+    #Specifying notch cutoff frequencies
+    #No need to normalise as fs is passed to firwin
     notch_cutoff = [0, noise_band_1[0]-trans_width, noise_band_1[0], noise_band_1[1], noise_band_1[1]+trans_width,
                     noise_band_2[0]-trans_width, noise_band_2[0], noise_band_2[1], noise_band_2[1]+trans_width, fsamp/2]
 
@@ -31,6 +32,7 @@ def main():
     ecg_filt_fft = abs(scipy.fft.fft(ecg_filtered))
     freq = scipy.fft.fftfreq(num_samples, 1/fsamp)
 
+    #Plotting filter frequency response, time-domain filtered ECG, and frequency-domain filtered ECG
     fig = plt.figure()
     axs = fig.subplots(3, 1)
 
@@ -59,6 +61,10 @@ def main():
             fig.savefig('../img/fir_optimal.png')
     else:
         fig.show()
+
+    #Noise power estimates
+    noise_power_total = np.var(ecg_noisy) - np.var(ecg_filtered)
+    print("Total noise power = " + str(noise_power_total))
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
