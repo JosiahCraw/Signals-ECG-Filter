@@ -9,6 +9,7 @@
 \usepackage[english]{babel}
 \usepackage{fancyhdr}
 \usepackage{chemformula}
+\usepackage{tabularx}
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{tabto}
@@ -19,6 +20,7 @@
 \usepackage{adjustbox}
 \usepackage{array}
 \usepackage{gensymb}
+\usepackage{pgf}
 \usepackage[siunitx, RPvoltages]{circuitikz}
 \usetikzlibrary{shapes, arrows}
 
@@ -146,27 +148,208 @@ maintain unity passband gain. Figure 3 shows the final filter realisation.
 
 \begin{figure}[H]
     \centering
-    \input{img/iir_filt.tex}
+    \includegraphics[width=\textwidth]{iir-block.png}
     \caption{Realisation of the cascaded IIR notch filters.}
     \label{fig:iir-filt}
 \end{figure}
 \section{Results}
 
 \subsection{Noisy ECG Signal and Spectrum}
+\begin{figure}[H]
+    \centering
+    \adjustbox{max width=0.75\textwidth}{
+    \input{img/noisy.pgf}
+    }
+    \caption{Sampled time domain ECG signal with additive noise at 32.6 Hz and 61.7 Hz (top) and its spectrum (bottom).}
+    \label{fig:noisy}
+\end{figure}
 
 \subsection{Window FIR Filter}
+\begin{figure}[H]
+    \centering
+    \adjustbox{max width=0.75\textwidth}{
+    \input{img/fir_window_lin_resp.pgf}
+    }
+    \caption{Frequency response of the window FIR filter (top), window filtered ECG signal (middle), and spectrum of filtered ECG signal (bottom).}
+    \label{fig:fir-window}
+\end{figure}
 
 \subsection{Optimal FIR Filter}
+\begin{figure}[H]
+    \centering
+    \adjustbox{max width=0.75\textwidth}{
+    \input{img/fir_optimal.pgf}
+    }
+    \caption{Frequency response of the optimal FIR filter (top), optimal filtered ECG signal (middle), and spectrum of filtered ECG signal (bottom).}
+    \label{fig:fir-optimal}
+\end{figure}
 
 \subsection{Frequency Sampled FIR Filter}
+\begin{figure}[H]
+    \centering
+    \adjustbox{max width=0.75\textwidth}{
+    \input{img/fir_freq.pgf}
+    }
+    \caption{Frequency response of the frequency-sampled FIR filter (top), frequency-sampled filtered ECG signal (middle), and spectrum of filtered ECG signal (bottom).}
+    \label{fig:fir-freq}
+\end{figure}
 
 \subsection{Cascaded Pole-Zero Placed IIR Filters}
+\begin{figure}[H]
+    \centering
+    \adjustbox{max width=0.75\textwidth}{
+    \input{img/irr_notch_resp.pgf}
+    }
+    \caption{Frequency response of the cascaded IIR filters (top), IIR filtered ECG signal (middle), and spectrum of filtered ECG signal (bottom).}
+    \label{fig:iir-resp}
+\end{figure}
 
 \subsection{Noise Power Estimate}
+Noise power was estimated by subtracting the variance of the ECG signals after filtering from the variance of the
+ECG signals before filtering. To estimate the relative noise powers, the power at individual interference frequencies
+was computed. This was trivial for the IIR filter as it is the cascade of two notch filters. The FIR filters are single
+filters with two notches, so the power spectral density of the noisy ECG signal, computed with the SciPy function
+\texttt{periodogram}, was first plotted. The relative height of the noise peaks was used to estimate the relative
+noise powers; it was identified that 62\% of the noise was at 61.7 Hz and 38\% was at 32.6 Hz. Table 1 summarises 
+the noise power estimates.
+\begin{table}[H]
+    \caption{Noise power estimates obtained after each filter.}
+    \label{table:noise-power}
+    \adjustbox{max width=1.1\textwidth}{
+    \centering
+    \begin{tabularx}{\textwidth}{ | X || X | X | X || X | X | }
+        \hline
+        Filter & Total Noise Power $(\mu V^2)$ & 32.6 Hz Noise Power $(\mu V^2)$ & 61.7 Hz Noise Power $(\mu V^2)$ & 32.6 Hz Relative Noise Power (\%) & 61.7 Hz Relative Noise Power (\%) \\
+        \hline
+        Window FIR & 16386 & 6227 & 10159 & 38 & 62\\
+        Optimal FIR & 15265 & 5801 & 9496 & 38 & 62\\
+        Sampled FIR & 15486 & 5885 & 9601 & 38 & 62\\
+        IIR & 15376 & 5683 & 9682 & 30 & 70\\
+        \hline
+    \end{tabularx}
+    }
+\end{table}
 
 \section{Discussion}
+An FIR filter may exhibit linear phase, which means that the frequency components of the input signal are delayed 
+in time by the same constant amount. An IIR filter cannot have linear phase. The window and optimal FIR filters
+in this assignment were designed to have linear phase; the frequency-sampled FIR filter was not. Linear phase is
+useful in applications where preserving wave shape is important. In ECGs, linear phase filters may be used to remove
+baseline wander without distorting clinical information [4].\\
+
+\noindent A disadvantage of FIR filters is that they use more coefficients for similar attenuation characteristics.
+Consequently, the input-to-output delay of an FIR filter is larger. This delay is given by:
+\begin{equation}
+    \textrm{Delay} = \frac{N-1}{2f_s}
+\end{equation}
+
+\noindent Where N is the number of coefficients and fs is the sampling frequency. Figure 10 shows the delays of the window
+FIR filter and the cascaded IIR notch filters. The delay of the FIR filter is 194.3 ms, whereas the IIR filter has
+near-zero delay. The FIR delay may be untenable in real-time systems where fast processing is required, such as an
+embedded system. An IIR filter may be more suitable for such an application if a non-linear phase response is acceptable.\\
+
+\begin{figure}[H]
+    \begin{subfigure}{0.5\textwidth}
+        \resizebox{\linewidth}{!}{\input{img/fir_window_lin_delay.pgf}}
+    \end{subfigure}
+    \begin{subfigure}{0.5\textwidth}
+        \resizebox{\linewidth}{!}{\input{img/irr_notch_delay.pgf}}
+    \end{subfigure}
+    \caption{Comparison of delays for the window FIR filter (left) and cascaded IIR filters (right). The noisy ECG input is shown in orange and the filtered outputs are blue.}
+\end{figure}
+
+\noindent Of the four filters, the window FIR filter shows the greatest attenuation at the noise frequencies.
+The trade-off is that it has the largest transition bandwidth. As a filters transition bandwidth increases,
+the attenuation of desired spectral characteristics increases. This is undesirable as it can remove important
+information from a signal. The effect of an increased transition bandwidth can be seen by comparing Fig. 5 with
+Fig. 8. In the spectrum of Fig. 5, frequencies around the noise frequencies are attenuated. In the spectrum of Fig. 8,
+the impulses representing the noise have been removed, with less obvious attenuation on the surrounding frequencies.
+If the notch attenuation is too small, then noise will still be present in the spectrum. This is shown in Fig. 7.
+Table 2 summaries the transition bandwidths and notch attenuations for the filters.\\
+
+\begin{table}[H]
+    \caption{Notch frequency attenuations and 3 dB bandwidths for the filters.}
+    \label{table:noise-freq-atten}
+    \adjustbox{max width=1.1\textwidth}{
+    \centering
+    \begin{tabularx}{\textwidth}{ | X || X | X || X | X | }
+        \hline
+        \empty & \multicolumn{2}{c ||}{32.6 Hz Noise} & \multicolumn{2}{c | }{62.7 Hz Noise}\\
+        \hline
+        Filter & 3dB Bandwidth (Hz) & Notch Attenuation & 3dB Bandwidth (Hz) & Notch Attenuation \\
+        \hline
+        Window FIR & 10 & -32 & 10 & -36\\
+        Optimal FIR & 5 & -24 & 5 & -26\\
+        Sampled FIR & 8 & -20 & 8 & -19\\
+        IIR & 5 & -16 & 5 & -19\\
+        \hline
+    \end{tabularx}
+    }
+\end{table}
+
+\noindent Experimentation found that a Hamming window gave the best response for the window FIR filter.
+In general, the window choice is a trade-off between transition width and stop-band attenuation.
+The maximum stopband attenuation is constant for a given window. A Blackman window has a greater
+maximum stopband attenuation than a Hamming window, but it was found that using a Hamming window
+resulted in more attenuation at the notch frequencies. This is because the Blackman window has a
+larger transition bandwidth, so the attenuation it reaches for the same notch bandwidth is less 
+than the Hamming window.\\
+
+\noindent Pass-band ripple is another filter property which can undesirably affect the ECG signal
+spectrum; this refers to fluctuations in the passband of a filter’s magnitude response. A small amount
+of passband ripple can be seen in the filter frequency response of Fig. 6. Because of passband ripple,
+frequencies that would ideally be unaffected are instead multiplied by slightly different amounts. This
+could cause issues in detecting the R peak voltage of an ECG, which is the maximum amplitude of the QRS
+complex ECG component. Figure 10 shows a typical representation of the QRS complex in an ECG. The R amplitude
+is important for heart rate measurement and is used when detecting arrhythmia (abnormal heart rate) and other
+heart issues [5], [6].\\
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.25\textwidth]{qrs.png}
+    \caption{QRS complex of a typical ECG.}
+    \label{fig:qrs}
+\end{figure}
+
+The best filter is the cascade of IIR filters. The noise frequencies are not present in the IIR filtered
+ECG spectrum. This is also true for the window and optimal FIR filters, but the window filter has a large
+transition bandwidth, and the optimal filter has obvious passband ripple. Another advantage of the IIR
+filter is that it is far more computationally efficient than the FIR filters. Only 4 memory elements are
+needed for the IIR filter, whereas the FIR filters required 399 or 400. The IIR filter is more suitable
+for applications with limited resources than the FIR filters. The IIR filter output is faster to compute
+because fewer operations are required. The result is less delay in the output of the IIR filter compared
+to the FIR filters. The non-linear phase response shown in Fig. 9 must be tolerated with the IIR filter. 
 
 \section{Conclusion}
+An ECG signal corrupted by additive noise at 32.6 Hz and 61.7 Hz was filtered by four different notch
+filters – three FIR and one IIR. Each FIR filter has two notches at the noise frequencies. They were
+designed using the window, optimal, and frequency-sampled methods. Functions from Python’s SciPy
+library were used to design the window and optimal filters, and a script was written to implement
+the frequency-sampled method. The IIR filter consists of two cascaded IIR notch filters, each with
+two zeros and two poles. These were designed analytically with pole-zero placement.\\
+
+\noindent The IIR filter was determined to be the best filter. It was the most computationally efficient.
+The noise was not visible in the ECG spectrum after IIR filtering. It also showed less input-to-output
+delay than the FIR filters. The disadvantage is that it has a non-linear phase response. The frequency-sampled
+FIR filtered ECG signal still had noise present in its spectrum. The window FIR filter has a wide transition
+bandwidth at 10 Hz, so frequencies neighbouring the noise were significantly attenuated. The optimal FIR
+filter has good attenuation at the noise frequencies and a transition bandwidth equal to the IIR filters
+but shows some passband ripple. 
 
 \section*{References}
+ 
+
+\noindent[1] J. O. Smith, "Spectral Audio Signal Processing," W3K Publishing, 2011.\\
+
+\noindent[2] B. Porr, "Digital Signal Processing," [Online]. Available: \\
+https://www.berndporr.me.uk/teaching/dsp\_handout45.pdf. [Accessed 10 08 2020].\\
+
+\noindent[3] L. R. Rabiner, B. Gold and C. A. McGonegal, "An Approach to the Approximation Problem for Nonrecursive Digital Filters," IEEE Transactions on Audio and Electroacoustics, Vols. AU-18, no. 2, pp. 83-106, 1970.\\
+
+\noindent[4] S. Hargittai, "Efficient and fast ECG baseline wander reduction without distortion of important clinical information," in Computers in Cardiology, Bologna, 2008.\\
+
+\noindent[5] S. S. Joshi and P. Shrivastava, "ECG beat detection using wavelet denoising," in Proceedings of the First International Conference on Contours of Computing Technology, Mumbai, 2010.\\
+
+\noindent[6] "ECG interpretation: Characteristics of the normal ECG (P-wave, QRS complex, ST segment, T-wave)," ECG \& Echo Learning, [Online]. Available:\\
+https://ecgwaves.com/topic/ecg-normal-p-wave-qrs-complex-st-segment-t-wave-j-point/. [Accessed 10 08 2020].\\
 \end{document}

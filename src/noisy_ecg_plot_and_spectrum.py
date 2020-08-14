@@ -18,7 +18,8 @@ def main():
     freq = scipy.fft.fftfreq(num_samples, 1/fs)
 
     #Plotting noisy ECG and its spectrum
-    fig, axs = plt.subplots(2, 1)
+    fig = plt.figure()
+    axs = fig.subplots(2, 1)
 
     axs[0].plot(time[0:len(time)-1], ecg_noisy)
     axs[0].set_title("Noisy ECG Signal")
@@ -31,23 +32,29 @@ def main():
     axs[1].set_xlabel('Frequency (Hz)')
     axs[1].set_ylabel('abs(X(f)) ($\mu V^2$)')
 
-    plt.tight_layout()
+    fig.tight_layout()
     if len(sys.argv) == 2:
         if sys.argv[1] == "tex":
-            plt.savefig('../img/noisy.pgf')
+            fig.savefig('../img/noisy.pgf')
         elif sys.argv[1] == "img":
-            plt.savefig('../img/noisy.png')
+            fig.savefig('../img/noisy.png')
     else:
-        plt.show()
+        fig.show()
 
     #Plotting noisy ECG PSD (to estimate relative noise powers)
     f, psd = scipy.signal.periodogram(ecg_noisy, 1024)
-    plt.figure(3)
+    fig2 = plt.figure(3)
     plt.plot(f, psd)
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('PSD')
     plt.title('Power Spectral Density of Noisy ECG')
-    plt.show()
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "tex":
+            fig2.savefig('../img/noisy-psd.pgf')
+        elif sys.argv[1] == "img":
+            fig2.savefig('../img/noisy-psd.png')
+    else:
+        fig2.show()
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
